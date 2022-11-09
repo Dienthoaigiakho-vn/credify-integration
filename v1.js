@@ -11,6 +11,7 @@ const signingKey = process.env.SIGNING_KEY
 const apiKey = process.env.API_KEY
 const mode = process.env.MODE // "sit" or "production"
 const apiDomain = process.env.URL_BASE_MARKET_API
+const baseCredifyDomain = process.env.URL_BASE_API
 const domainSuccessPage =
   process.env.URL_SUCCESS_PAGE || "https://dienthoaigiakho.vn";
 
@@ -173,7 +174,7 @@ module.exports = () => {
         return res.status(401).send({ message: "Unauthorized" })
       }
 
-      const trimmedDomain = apiDomain.endsWith("/") ? apiDomain.slice(0, -1) : apiDomain;
+      const trimmedDomain = baseCredifyDomain.endsWith("/") ? baseCredifyDomain.slice(0, -1) : baseCredifyDomain;
       const webhookEndpoint = `${trimmedDomain}/v1/webhook`;
       const valid = await credify.auth.verifyWebhook(signature, req.body, webhookEndpoint, eventId, timestamp);
       if (!valid) {
