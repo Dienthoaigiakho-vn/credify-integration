@@ -202,7 +202,7 @@ module.exports = () => {
               `${apiDomain}/api/v2/sale-orders/${referenceId}`
             );
             const internalOrderInfo = data.extra_data;
-            const currentOrderStatus = internalOrderInfo.bnplTx.status
+            const currentOrderStatus = internalOrderInfo?.bnplTx?.status;
             if (currentOrderStatus === status) {
               return res.status(200).json({ message: "No update" })
             }
