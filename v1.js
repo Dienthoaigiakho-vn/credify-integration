@@ -206,7 +206,7 @@ module.exports = () => {
             if (currentOrderStatus === status) {
               return res.status(200).json({ message: "No update" })
             }
-            const res = await axios.patch(
+            await axios.patch(
               `${apiDomain}/api/v2/sale-orders/${referenceId}`,
               {
                 extra_data: {
