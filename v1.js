@@ -4,6 +4,7 @@ const { formKey, getCategoryItem, mapCategoryFromOrderLine } = require("./utils"
 const {WEBHOOK_EVENTS} = require("./constants");
 const axios = require("axios");
 const dotenv = require('dotenv');
+const {sendTelegramMessage} = require("./helper/telegram")
 dotenv.config();
 
 const signingKey = process.env.SIGNING_KEY
@@ -216,6 +217,9 @@ module.exports = () => {
                 },
               }
             );
+
+          // send telegram notificaiton:
+          await sendTelegramMessage(status, orderId, referenceId)
           } catch (e) {
             return res.status(500).json({ message: e.message })
           }
