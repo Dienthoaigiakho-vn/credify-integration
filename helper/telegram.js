@@ -6,7 +6,7 @@ const {
 } = require("../constants");
 
 const client = new TelegramClient({
-  TELEGRAM_ACCESS_TOKEN,
+  accessToken: TELEGRAM_ACCESS_TOKEN,
 });
 
 async function sendTelegramMessage(status, orderId, referenceId) {
