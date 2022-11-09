@@ -219,7 +219,7 @@ module.exports = () => {
             );
 
           // send telegram notificaiton:
-          sendTelegramMessage(status, orderId, referenceId)
+          await sendTelegramMessage(status, orderId, referenceId)
           } catch (e) {
             return res.status(500).json({ message: e.message })
           }
