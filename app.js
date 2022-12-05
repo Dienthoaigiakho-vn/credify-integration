@@ -2,12 +2,14 @@ const express = require("express")
 const bodyParser = require("body-parser")
 const morgan = require("morgan")
 const v1 = require("./v1")
+const { allowCrossDomain } = require("./utils");
 
 const app = express()
 
 app.use(morgan("combined"))
 app.use(bodyParser.json({ limit: "50mb" }))
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }))
+app.use(allowCrossDomain);
 
 const port = process.env.PORT || 8000
 app.get("/", (req, res) => {

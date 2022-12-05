@@ -18,12 +18,18 @@ const CATEGORY_TYPE = {
 
 const BNPL_ORDER_STATUS = {
   APPROVED: "APPROVED",
-  CANCELED:"CANCELED",
-  PAID:"PAID"
-}
+  CANCELED: "CANCELED",
+  PAID: "PAID",
+};
 
 const CHAT_TELEGRAM_ID = "-860112640";
 const TELEGRAM_ACCESS_TOKEN = "5746897807:AAGsl-IGV4Mr-2o3S-CoiubblqD6jAzbnVw";
+
+const DOMAIN_VALID = [
+  "https://next.giakho.vn",
+  "https://giakho.vn",
+  "https://dienthoaigiakho.vn",
+];
 
 module.exports = {
   WEBHOOK_EVENTS,
@@ -31,5 +37,6 @@ module.exports = {
   CATEGORY_TYPE,
   CHAT_TELEGRAM_ID,
   TELEGRAM_ACCESS_TOKEN,
-  BNPL_ORDER_STATUS
+  BNPL_ORDER_STATUS,
+  DOMAIN_VALID,
 };

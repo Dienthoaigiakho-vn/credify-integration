@@ -1,4 +1,5 @@
-const { CATEGORY, CATEGORY_TYPE } = require("./constants");
+const { CATEGORY, CATEGORY_TYPE, DOMAIN_VALID } = require("./constants");
+const cors = require("cors");
 
 const formKey = (data) => {
   return `-----BEGIN PRIVATE KEY-----
@@ -32,8 +33,16 @@ const mapCategoryFromOrderLine = (orderLines) => {
   });
 };
 
+const allowCrossDomain = (req, res, next) => {
+  const originUrl = req.get("origin");
+  return cors({
+    origin: DOMAIN_VALID.includes(originUrl),
+  })(req, res, next);
+};
+
 module.exports = {
   formKey,
   getCategoryItem,
-  mapCategoryFromOrderLine
+  mapCategoryFromOrderLine,
+  allowCrossDomain,
 };
