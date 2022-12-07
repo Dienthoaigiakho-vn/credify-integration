@@ -7,9 +7,14 @@ const dotenv = require('dotenv');
 const {sendTelegramMessage} = require("./helper/telegram")
 dotenv.config();
 
-const signingKey = process.env.SIGNING_KEY
-const apiKey = process.env.API_KEY
-const mode = process.env.MODE // "sit" or "production"
+// const signingKey = process.env.SIGNING_KEY
+// const apiKey = process.env.API_KEY
+// const mode = process.env.MODE // "sit" or "production"
+
+// hardcode to fix bug
+const signingKey = "MC4CAQAwBQYDK2VwBCIEIP0YTOeUxU45Y7YBhVtdbW/BCeMuxoLCmqcZG8O2KlLf"
+const apiKey = "1ZMivCltepZtfJv0HAmEYBQyLRFkuVzrUG9yI6UzBMYwbQImmwUkn6vLjXWsCXpb"
+const mode = "sit"
 const apiDomain = process.env.URL_BASE_MARKET_API
 const baseCredifyDomain = process.env.URL_BASE_API
 const domainSuccessPage =
@@ -294,6 +299,7 @@ module.exports = () => {
       console.log("======== signingKey =========", signingKey);
       console.log("======== apiKey =========", apiKey);
       console.log("======== mode =========", mode);
+      
       const credify = await Credify.create(formKey(signingKey), apiKey, {
         mode,
       });
