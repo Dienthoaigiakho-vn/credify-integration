@@ -288,13 +288,21 @@ module.exports = () => {
         total_amount: req.body.bnpl.total_amount,
       },
     };
+
+    console.log("======== inputs =========", inputs);
     try {
+      console.log("======== signingKey =========", signingKey);
+      console.log("======== apiKey =========", apiKey);
+      console.log("======== mode =========", mode);
       const credify = await Credify.create(formKey(signingKey), apiKey, {
         mode,
       });
+      console.log("======== Step1 =========");
       const response = await credify.offer.getList(localId, inputs);
+      console.log("======== Step2 =========");
       res.json(response);
     } catch (e) {
+      console.log("======== Step error =========");
       res.status(400).json({ error: { message: e.message } });
     }
   });
