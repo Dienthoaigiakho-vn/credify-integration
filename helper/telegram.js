@@ -12,10 +12,11 @@ const client = new TelegramClient({
 async function sendTelegramMessage(status, orderId, referenceId) {
   let message = "";
   switch (status) {
-    case BNPL_ORDER_STATUS.APPROVED:
+    case BNPL_ORDER_STATUS.SIGNED:
       message = `Xin chúc mừng! ${orderId} với mã tham chiếu ${referenceId} đã được COMB chấp nhận hồ sơ thẩm định vay. Vui lòng xác nhận với khách hàng để xác nhận và tải lên tài liệu xin giải ngân.`;
       break;
-    case BNPL_ORDER_STATUS.CANCELED:
+    case BNPL_ORDER_STATUS.FAILED:
+    case BNPL_ORDER_STATUS.REJECTED:
       message = `${orderId} với mã tham chiếu ${referenceId}  đã không được COMB chấp nhận hồ sơ thẩm định vay.`;
       break;
     case BNPL_ORDER_STATUS.PAID:
