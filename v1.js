@@ -1,26 +1,31 @@
-const { Router } = require("express")
-const { Credify } = require("@credify/nodejs")
-const { formKey, getCategoryItem, mapCategoryFromOrderLine } = require("./utils")
-const {WEBHOOK_EVENTS} = require("./constants");
+const { Router } = require("express");
+const { Credify } = require("@credify/nodejs");
+const {
+  formKey,
+  getCategoryItem,
+  mapCategoryFromOrderLine,
+  buildPostIntentsPayload,
+} = require("./utils");
+const { WEBHOOK_EVENTS } = require("./constants");
 const axios = require("axios");
-const dotenv = require('dotenv');
-const {sendTelegramMessage} = require("./helper/telegram")
+const dotenv = require("dotenv");
+const { sendTelegramMessage } = require("./helper/telegram");
 dotenv.config();
 
-const signingKey = process.env.SIGNING_KEY
-const apiKey = process.env.API_KEY
-const mode = process.env.MODE // "sit" or "production"
-const apiDomain = process.env.URL_BASE_MARKET_API
-const baseCredifyDomain = process.env.URL_BASE_API
+const signingKey = process.env.SIGNING_KEY;
+const apiKey = process.env.API_KEY;
+const mode = process.env.MODE; // "sit" or "production"
+const apiDomain = process.env.URL_BASE_MARKET_API;
+const baseCredifyDomain = process.env.URL_BASE_API;
 const domainSuccessPage =
   process.env.URL_SUCCESS_PAGE || "https://dienthoaigiakho.vn";
 
 module.exports = () => {
-  const api = Router()
+  const api = Router();
 
   api.get("/", (req, res) => {
-    res.status(200).json({ message: "OK" })
-  })
+    res.status(200).json({ message: "OK" });
+  });
 
   api.post("/orders", async (req, res) => {
     // TODO: Please update this request body
@@ -107,6 +112,9 @@ module.exports = () => {
       "64cf7620-9ac1-4d46-849e-db5eb34a7cef",
     ];
 
+    // This should be string array (can be empty)
+    const productCodes = req.body.product_codes;
+
     // This should be an object
     /**
      * {
@@ -148,7 +156,8 @@ module.exports = () => {
       const response = await credify.offer.simulate(
         productType,
         providerIds,
-        inputs
+        inputs,
+        productCodes
       );
       res.json(response);
     } catch (e) {
@@ -158,27 +167,38 @@ module.exports = () => {
 
   api.post("/webhook", async (req, res) => {
     try {
-      const credify = await Credify.create(formKey(signingKey), apiKey, { mode })
+      const credify = await Credify.create(formKey(signingKey), apiKey, {
+        mode,
+      });
 
       // Validate Webhook request
       const signature = req.headers["signature"] || req.headers["Signature"];
       if (!signature) {
-        return res.status(401).send({ message: "Unauthorized" })
+        return res.status(401).send({ message: "Unauthorized" });
       }
       const eventId = req.headers["X-Event-Id"] || req.headers["x-event-id"];
       if (!eventId) {
-        return res.status(401).send({ message: "Unauthorized" })
+        return res.status(401).send({ message: "Unauthorized" });
       }
-      const timestamp = req.headers["X-Event-Timestamp"] || req.headers["x-event-timestamp"];
+      const timestamp =
+        req.headers["X-Event-Timestamp"] || req.headers["x-event-timestamp"];
       if (!timestamp) {
-        return res.status(401).send({ message: "Unauthorized" })
+        return res.status(401).send({ message: "Unauthorized" });
       }
 
-      const trimmedDomain = baseCredifyDomain.endsWith("/") ? baseCredifyDomain.slice(0, -1) : baseCredifyDomain;
+      const trimmedDomain = baseCredifyDomain.endsWith("/")
+        ? baseCredifyDomain.slice(0, -1)
+        : baseCredifyDomain;
       const webhookEndpoint = `${trimmedDomain}/v1/webhook`;
-      const valid = await credify.auth.verifyWebhook(signature, req.body, webhookEndpoint, eventId, timestamp);
+      const valid = await credify.auth.verifyWebhook(
+        signature,
+        req.body,
+        webhookEndpoint,
+        eventId,
+        timestamp
+      );
       if (!valid) {
-        return res.status(401).send({ message: "Unauthorized" })
+        return res.status(401).send({ message: "Unauthorized" });
       }
 
       // Handle webhook
@@ -187,10 +207,10 @@ module.exports = () => {
       switch (req.body.type) {
         case WEBHOOK_EVENTS.OFFER_TX_STATUS_UPDATED:
           // Offer status is updated
-          break
+          break;
         case WEBHOOK_EVENTS.DISPUTE_COMPLETED:
           // Dispute status is updated
-          break
+          break;
         case WEBHOOK_EVENTS.ORDER_STATUS_UPDATED:
           // BNPL order is updated
           orderId = req.body.order_id;
@@ -204,7 +224,7 @@ module.exports = () => {
             const internalOrderInfo = data.extra_data;
             const currentOrderStatus = internalOrderInfo?.bnplTx?.status;
             if (currentOrderStatus === status) {
-              return res.status(200).json({ message: "No update" })
+              return res.status(200).json({ message: "No update" });
             }
             await axios.patch(
               `${apiDomain}/api/v2/sale-orders/${referenceId}`,
@@ -219,41 +239,43 @@ module.exports = () => {
               }
             );
 
-          // send telegram notificaiton:
-          await sendTelegramMessage(status, orderId, referenceId)
+            // send telegram notificaiton:
+            await sendTelegramMessage(status, orderId, referenceId);
           } catch (e) {
-            return res.status(500).json({ message: e.message })
+            return res.status(500).json({ message: e.message });
           }
 
-          break
+          break;
         case WEBHOOK_EVENTS.DISBURSEMENT_STATUS_UPDATED:
           // BNPL disbursement docs are confirmed
-          break
+          break;
         default:
-          break
+          break;
       }
 
-      return res.status(200).json({ message: "Success" })
+      return res.status(200).json({ message: "Success" });
     } catch (e) {
-      res.json({ error: { message: e.message } })
+      res.json({ error: { message: e.message } });
     }
-  })
+  });
 
   api.post("/api/claims/push", async (req, res) => {
     // Nothing to do. Just return 200 status
-    res.status(200).json({ credifyId: "" })
-  })
+    res.status(200).json({ credifyId: "" });
+  });
 
   api.get("/api/bnpl/orders/:orderId/redirect", async (req, res) => {
     const orderId = req.params.orderId;
     const isError = !!req.query.error_message;
-    const url = isError ? `${domainSuccessPage}/mua-tra-gop/cancel` : `${domainSuccessPage}/mua-tra-gop/success`;
+    const url = isError
+      ? `${domainSuccessPage}/mua-tra-gop/cancel`
+      : `${domainSuccessPage}/mua-tra-gop/success`;
 
     if (!orderId) {
-      return res.sendStatus(500).json({ message: "No order ID" })
+      return res.sendStatus(500).json({ message: "No order ID" });
     }
-    res.redirect(url)
-  })
+    res.redirect(url);
+  });
 
   api.post("/offers", async (req, res) => {
     // This should be string
@@ -299,5 +321,20 @@ module.exports = () => {
     }
   });
 
+  api.post("/intents", async (req, res) => {
+    const payload = buildPostIntentsPayload(req);
+
+    const credify = await Credify.create(formKey(signingKey), apiKey, {
+      mode,
+    });
+
+    try {
+      const response = await credify.intent.lodgeNewIntent(payload);
+      res.json(response);
+    } catch (e) {
+      res.status(400).json({ error: { message: e.message } });
+    }
+  });
+
   return api;
-}
+};
